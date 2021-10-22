@@ -1,0 +1,40 @@
+#service
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-app-service
+  labels:
+    app: nodeappsvc
+spec:
+  type:
+  ports:
+  - port: 80
+    targetPort: 3000
+    protocol: TCP
+    name: http
+  selector:
+    app: nodeappsvc
+
+
+# Deployment 
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-app
+spec:
+  selector:
+    matchLabels:
+      app: nodeappsvc
+  replicas: 1
+  template:
+    metadata:
+      labels: 
+        app: nodeappsvc
+    spec:     
+      containers: 
+      - name: nodesample
+        image: myacrankur.azurecr.io/myacrankur:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
