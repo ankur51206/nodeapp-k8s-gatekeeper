@@ -1,40 +1,76 @@
-#service
 apiVersion: v1
 kind: Service
 metadata:
-  name: node-app-service
+  name: nodeapp
+  namespace: nodeapp-namespace
   labels:
-    app: nodeappsvc
+    name: nodeapp
 spec:
-  type:
+  type: ClusterIP
   ports:
-  - port: 80
-    targetPort: 3000
-    protocol: TCP
-    name: http
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
   selector:
-    app: nodeappsvc
+    app: nodeapp
 
-
-# Deployment 
-
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: node-app
+  name: nodeapp
+  namespace: nodeapp-namespace
 spec:
   selector:
     matchLabels:
-      app: nodeappsvc
+      app: nodeapp
   replicas: 1
+  revisionHistoryLimit: 3
   template:
     metadata:
-      labels: 
-        app: nodeappsvc
-    spec:     
-      containers: 
-      - name: nodesample
-        image: myacrankur.azurecr.io/myacrankur:latest
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 80
+      labels:
+        app: nodeapp
+    spec:
+      containers:
+        - name: nodeapp-container
+          image: larakubeacr.azurecr.io/repo1:latest
+          imagePullPolicy: 'Always'
+          ports:
+            - containerPort: 80
+          resources:
+            limits:
+              cpu: 250m
+              memory: 500Mi
+            requests:
+              cpu: 250m
+              memory: 500Mi
+
+---
+#HPA
+
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nodeapp
+  namespace: nodeapp-namespace
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nodeapp
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: AverageValue
+          averageValue: 400Mi

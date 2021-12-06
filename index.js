@@ -1,7 +1,7 @@
 const express = require("express");
 
-const app = express(); app.listen(3000, function () {
-    console.log("listening on 3000");
+const app = express(); app.listen(80, function () {
+    console.log("listening on 80");
 }); app.get("/", (req, res) => {
     res.send("Ankur Patel -- API V4");
 }); app.get("/delete", (req, res) => {
